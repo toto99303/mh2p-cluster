@@ -16,15 +16,18 @@ No speculative display-context number or compositor command is applied.
 ## Capture on the existing candidate 2 installation — no mod install required
 
 Download [capture_mh2p_screen.sh](../../modkit/diagnostics/capture_mh2p_screen.sh)
-(use Download raw file) and copy it to `/tmp/capture_mh2p_screen.sh` using the
-same SCP client used to collect logs. The script has LF line endings. Run it
-manually through the SSH terminal, not as a ModKit/Persist script.
+(use Download raw file) and keep it on your computer. After the restart in
+step 1, copy it to `/tmp/capture_mh2p_screen.sh` using the same SCP client used
+to collect logs. The script has LF line endings. Run it manually through the
+SSH terminal, not as a ModKit/Persist script. Upload after restarting because
+a full reboot can clear `/tmp`.
 
 While parked:
 
 1. Restart the MMI with the phone disconnected. Wait until Audi's original
    cockpit map is visibly working. This provides a known-good baseline.
-2. In the MMI SSH terminal, run:
+2. Upload the script from your computer to `/tmp/capture_mh2p_screen.sh`.
+   In the MMI SSH terminal, run:
 
    ```sh
    ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-oem
