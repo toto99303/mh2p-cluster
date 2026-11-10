@@ -3,12 +3,42 @@
 Development candidate for the owner's **MH2p_ER_AUG35_P2711**, 1920x722 cockpit.
 The owner confirmed that the candidate3 timed test selected source62 for 12 seconds
 and restored Audi's map before disconnecting the phone. The captured `gs`/`gd`
-preflight also succeeded as user `java`. **Candidate4's automatic lifecycle has
-passed host fixtures; it still needs testing in the car.**
+preflight also succeeded as user `java`. **The owner now reports successful
+automatic switching with candidate4; the uploaded logs show two complete AA
+selection/Audi-return cycles.** Startup with the phone already connected and
+longer cold-boot testing remain unverified for this candidate.
 
 [Download candidate4 ZIP](../../builds/ClusterIntegration_q7_p2711_auto_route62_candidate4.zip)
 (Download raw file) ·
 [SHA-256](../../builds/ClusterIntegration_q7_p2711_auto_route62_candidate4.zip.sha256)
+
+## First automatic vehicle result
+
+The owner reports that automatic switching works. The submitted Java and daemon
+logs contain two successive connect/disconnect sessions in one HMI run:
+
+| Cycle | AA composition confirmed | Audi composition confirmed |
+|---|---|---|
+| 1 | `[41,62]` at log elapsed `01:18.151` | `[41,33]` at `02:04.998` |
+| 2 | `[41,62]` at `02:35.741` | `[41,33]` at `02:52.749` |
+
+Audi composition was confirmed approximately 2.6 seconds and 1.3 seconds after
+the respective AA termination notifications. Both decoder sessions report actual
+window ID62 and follow prepare/resume/stop. No `SELECT_FAILED`,
+`SELECT_UNCONFIRMED`, `RELEASE_FAILED` or `RESTORE_UNCONFIRMED` appears in this run.
+
+One `QUERY_FAILED ... query pipe did not close` occurs while video is inactive,
+before the first connection; normal polling recovers before that session starts.
+Keep this as an observed transient, rather than treating the run as error-free.
+The first resume-to-AA-confirmation interval is approximately 15.5 seconds; the
+second is 1.8 seconds. These logs do not establish the cause of that difference.
+
+Both stock map-readiness flags became true before the first AA preparation.
+This run therefore supports automatic connect, disconnect and reconnect on the
+tested layout, but does not exercise AA arriving before native-map readiness,
+an MMI restart with the phone attached, or a true vehicle cold boot with AA attached.
+The package remains candidate4 with the same published SHA-256; no runtime or
+rollback change accompanies this validation record. Raw vehicle logs are private.
 
 ## What changes
 
