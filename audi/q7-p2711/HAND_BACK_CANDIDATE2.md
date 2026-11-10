@@ -1,5 +1,11 @@
 # P2711 native-map hand-back — experimental candidate 2
 
+Historical candidate: the owner still observed a black cockpit after unplugging.
+Read [candidate4](AUTO_ROUTE62.md) for current source62 testing. Reproduce this
+older build from `fix/p2711-native-map-handover`, commit
+`9e58317b54c711b34cccfcb99a54f707d9b1fbc2`; the current source snapshot requires
+the source62 builder and refuses the legacy source33 build.
+
 For the supplied **MH2p_ER_AUG35_P2711** HMI. Includes candidate 1's startup
 gate unchanged. Host-tested; **not yet vehicle-validated**. A targeted hypothesis
 for the black cockpit after unplug, not a confirmed vehicle fix.

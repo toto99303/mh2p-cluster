@@ -7,6 +7,13 @@ set -euo pipefail
 STOCK="$1"; BASE="$2"; OUT="$3"; ECJ="$4"; ASM="$5"
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/.." && pwd)"
+# This legacy builder retains the source33 player. The new controller requires
+# the pinned source62 package; refuse a mismatched firmware/package combination.
+if [[ -f "$REPO/audi/q7-p2711/readiness/de/audi/app/terminalmode/smartphone/androidauto2/nav/Mh2pAutoRoute.java" ]]; then
+    echo 'This checkout requires build_auto_route62.sh and exact candidate3 ZIP; legacy source33 build refused.' >&2
+    echo 'To reproduce candidate1/2, use its historical branch/commit and source snapshot.' >&2
+    exit 2
+fi
 # The invisible warm-prepare and no-stop-splash guarantees rely on this exact
 # native daemon. Refuse any other base instead of assuming source/binary parity.
 python3 - "$BASE" "$STOCK" <<'PYHASH'

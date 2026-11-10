@@ -1,5 +1,10 @@
 # P2711 cold-start gate — experimental candidate 1
 
+Historical candidate. Read [candidate4](AUTO_ROUTE62.md) for current automatic
+source62 testing. Reproduce this older build from `fix/p2711-coldstart-gate`,
+commit `7b0e527a458a3c930bb68fbca3e49646004b7f5c`; the current source snapshot
+requires the source62 builder and refuses the legacy source33 build.
+
 Built for the supplied **MH2p_ER_AUG35_P2711** HMI, on top of the original
 Q7 v1.5 SD ZIP. Host-tested, not vehicle-tested. This is an Android Auto
 presentation gate, not a CarPlay port or a delay to AA transport negotiation.
