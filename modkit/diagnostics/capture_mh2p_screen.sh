@@ -1,5 +1,5 @@
 #!/bin/ksh
-# Read-only MH2p Screen snapshot, V2. Run manually over SSH, never at boot.
+# Read-only MH2p Screen snapshot, V3. Run manually over SSH, never at boot.
 # /tmp can be a flat shared-memory namespace: create ONE file, no directories.
 # Reads process/window/display state; writes only the new output file supplied.
 # Licensed under CC BY-NC-SA 4.0, matching this repository.
@@ -29,7 +29,7 @@ count=0
 attempts=0
 limit=128
 capture() {
-    echo "MH2P_SCREEN_SNAPSHOT_V2_SINGLE_FILE"
+    echo "MH2P_SCREEN_SNAPSHOT_V3_NAMED_NODES"
     date
     echo "screen root: $SCREEN_ROOT"
     echo "Read-only inspection; no directories, Screen contexts or property changes."
@@ -53,7 +53,15 @@ capture() {
                 props="$object"
                 # QNX 6.6 may expose win-N/win-N instead of a flat win-N file.
                 if [ -d "$props" ]; then props="$props/$label"; fi
-                [ -f "$props" ] || continue
+                # QNX Screen properties appear as named-special nodes (ls: n),
+                # not regular files. A -f check silently skipped every property
+                # on the vehicle. Select only existing win-/dpy- paths, reject
+                # directories and ordinary device/FIFO types, then try a read.
+                [ -e "$props" ] || continue
+                [ ! -d "$props" ] || continue
+                [ ! -b "$props" ] || continue
+                [ ! -c "$props" ] || continue
+                [ ! -p "$props" ] || continue
                 if [ "$attempts" -ge "$limit" ]; then
                     echo "Property-read limit reached ($limit); snapshot is incomplete."
                     return
@@ -74,7 +82,7 @@ capture() {
         done
         echo "text window/display snapshots: $count"
         if [ "$count" -eq 0 ]; then
-            echo "No readable window/display properties. Screen debug support or permissions may be unavailable."
+            echo "No properties read successfully; inspect the read errors above. Missing data does not establish window visibility or ownership."
         fi
     else
         echo "Screen debug directory unavailable; no window ownership conclusion can be drawn."

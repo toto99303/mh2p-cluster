@@ -15,45 +15,64 @@ No speculative display-context number or compositor command is applied.
 
 ## Capture on the existing candidate 2 installation — no mod install required
 
-Use script V2 (`MH2P_SCREEN_SNAPSHOT_V2_SINGLE_FILE`). The first version tried
-to create output directories; the vehicle reports `Function not implemented`
-for mkdir under `/tmp`. V2 creates one plain text file per snapshot and never
-calls mkdir. Replace any previously uploaded script with this version.
+Use script V3 (`MH2P_SCREEN_SNAPSHOT_V3_NAMED_NODES`). V1 tried to create
+folders under the flat `/tmp` namespace; V2 fixed output creation but incorrectly
+required property nodes to be regular files. Vehicle listings show named-special
+`n` nodes instead, so V2 collected directory listings and **zero properties**.
+That was a collector bug, not evidence that Screen debug support is absent.
+V3 reads the existing `win-*`/`dpy-*` named nodes, retaining the single-file output
+and bounds. Replace any previously uploaded script with this version.
+
+The received V2 listings establish that the original navigation window remains
+present after disconnect and that the AA decoder process and its windows disappear.
+They do not establish the native window's display binding, visibility or attached
+stream because the property bodies were skipped. Collect a V3 black-state report
+first; an OEM baseline can follow if a comparison of the actual properties is
+still needed. No new mod installation is required.
 
 Download [capture_mh2p_screen.sh](../../modkit/diagnostics/capture_mh2p_screen.sh)
-(use Download raw file) and keep it on your computer. After the restart in
-step 1, copy it to `/tmp/capture_mh2p_screen.sh` using the same SCP client used
-to collect logs. The script has LF line endings. Run it manually through the
-SSH terminal, not as a ModKit/Persist script. Upload after restarting because
-a full reboot can clear `/tmp`.
+(use Download raw file) and overwrite `/tmp/capture_mh2p_screen.sh` using SCP.
+Run it manually through the SSH terminal, not as a ModKit/Persist script. The
+script has LF line endings. A full reboot can clear `/tmp`, so upload after any
+restart.
 
-While parked:
+For the current investigation, while parked with the cockpit black after AA
+disconnect, run just this capture:
+
+```sh
+ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-black-v3.txt
+```
+
+Before rebooting, download that one text file using SCP and upload it in the
+private troubleshooting conversation. No restart or new mod installation is
+needed for this capture. If the filename already exists, choose another new
+filename; the script refuses to overwrite an existing file or directory.
+
+If the property bodies are successfully captured and a fresh baseline is
+needed, use this sequence:
 
 1. Restart the MMI with the phone disconnected. Wait until Audi's original
-   cockpit map is visibly working. This provides a known-good baseline.
-2. Upload the script from your computer to `/tmp/capture_mh2p_screen.sh`.
-   In the MMI SSH terminal, run:
+   cockpit map is visibly working, then upload the script again.
+2. Capture OEM state:
 
    ```sh
-   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-oem.txt
+   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-oem-v3.txt
    ```
 
-3. Connect the phone, confirm AA appears, wait 15 seconds, and run:
+3. Connect the phone, confirm AA appears, wait 15 seconds, and capture AA state:
 
    ```sh
-   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-aa.txt
+   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-aa-v3.txt
    ```
 
-4. Disconnect the phone and wait 15 seconds with the cockpit black. Run:
+4. Disconnect the phone, wait 15 seconds with the cockpit black, and capture:
 
    ```sh
-   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-black.txt
+   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-black-v3-2.txt
    ```
 
-5. Before rebooting, download the three text files using SCP and upload them
-   in the private troubleshooting conversation. If a filename already exists,
-   choose a new filename, such as `/tmp/mh2p-screen-oem-2.txt`; the script refuses
-   to overwrite an existing file or directory.
+5. Download the three text files using SCP before rebooting and upload them
+   in the private troubleshooting conversation.
 
 The script reads process names, directory listings and text window/display
 properties under `/dev/screen`. It writes one private-by-default report to the
@@ -66,8 +85,10 @@ stops after 128 property files, explicitly marking the report incomplete.
 If Screen debug support or permissions are unavailable, the report records
 that limitation. Missing properties are not proof that a window does not exist.
 No debug module is enabled or installed by this script. The script was tested
-against host fixtures using bash, including a fixture where every mkdir call
-would fail; it has not yet been run on QNX hardware.
+against host fixtures using bash, including fixtures where mkdir fails and
+all regular-file (`-f`) checks return false. The new test still requires actual
+property bodies to be captured, and ordinary FIFOs/devices are excluded. It has
+not yet been run on QNX hardware.
 
 QNX documents the older nested `win-N/win-N` layout in the
 [6.6 documentation](https://www.qnx.com/developers/docs/6.6.0_anm11_wf10/),
