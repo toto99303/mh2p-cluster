@@ -8,6 +8,15 @@ for the black cockpit after unplug, not a confirmed vehicle fix.
 (open the file and choose Download raw file) ·
 [SHA-256](../../builds/ClusterIntegration_q7_p2711_handover_candidate2.zip.sha256)
 
+## Vehicle result
+
+The candidate did not restore the physical map. New logs report instance 3
+Active, visible=true, frozen=false, runLevel=4 after both restore attempts;
+the daemon processes stop and subsequently reports no child. Do not interpret
+the host checks or those renderer flags as successful hand-back. Continue with
+[read-only Screen-state diagnostics](CENTERED_DIAGNOSTICS.md). The centered
+variant described there changes the requested framing only.
+
 ## Evidence and change
 
 Vehicle logs from candidate 1 show readiness, successful AA playback, and a
