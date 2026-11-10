@@ -1,127 +1,184 @@
-# Audi A6 C8 P2711 candidate 4: automatic AA selection and Audi-map return
+# Audi A6 C8 P2711 candidate4: backup, installation and rollback
 
-Tested candidate4 release for the owner's **Audi A6 C8**, with
-**MH2p_ER_AUG35_P2711** and a 1920x722 cockpit.
-[GitHub release](https://github.com/toto99303/mh2p-cluster/releases/tag/a6-c8-p2711-candidate4).
-The owner confirmed that the candidate3 timed test selected source62 for 12 seconds
-and restored Audi's map before disconnecting the phone. The captured `gs`/`gd`
-preflight also succeeded as user `java`. **The owner now reports successful
-automatic switching with candidate4; the uploaded logs show two complete AA
-selection/Audi-return cycles.** The owner subsequently confirmed an MMI button
-restart with the phone connected: AA automatically took the cockpit after a slow
-startup. Full vehicle-sleep cold boots and other firmware remain unverified.
+Tested on an **Audi A6 C8**, firmware **MH2p_ER_AUG35_P2711**, with a 1920x722
+Virtual Cockpit. Android Auto must already work on the main MMI screen.
 
-[Download candidate4 ZIP](../../builds/ClusterIntegration_a6_c8_p2711_auto_route62_candidate4.zip)
-(Download raw file) ·
-[SHA-256](../../builds/ClusterIntegration_a6_c8_p2711_auto_route62_candidate4.zip.sha256)
+[Release and installable ZIP](https://github.com/toto99303/mh2p-cluster/releases/tag/a6-c8-p2711-candidate4)
+· [ZIP file](../../builds/ClusterIntegration_a6_c8_p2711_auto_route62_candidate4.zip)
+· [SHA-256 file](../../builds/ClusterIntegration_a6_c8_p2711_auto_route62_candidate4.zip.sha256)
 
-The earlier Q7 package label came from the upstream base; the owner's tests were
-on an **Audi A6 C8**. Only the outer archive name and documentation are corrected.
-The ZIP bytes, SHA-256, installed runtime, framing and rollback payloads are the
-same as the tested candidate4.
+**First installation:** follow steps 1–4 below. First copy the original files from
+the MMI to your PC using SCP; then put the **full released package** on an SD card.
 
-## First automatic vehicle result
+**Already have ClusterIntegration installed?** Keep your existing pre-install
+backup and use [Updating an existing installation](#updating-an-existing-installation).
+A new SCP copy of an already modified unit is a current-state backup, not an
+original-files backup. If candidate4 is already working, this is the same build.
 
-The owner reports that automatic switching works. The submitted Java and daemon
-logs contain two successive connect/disconnect sessions in one HMI run:
+## 1. Back up the original files to your PC via SCP
 
-| Cycle | AA composition confirmed | Audi composition confirmed |
-|---|---|---|
-| 1 | `[41,62]` at log elapsed `01:18.151` | `[41,33]` at `02:04.998` |
-| 2 | `[41,62]` at `02:35.741` | `[41,33]` at `02:52.749` |
+Do this **before installing ClusterIntegration**. The SCP backup is a separate
+copy on your computer; the installer will create another backup on the SD card
+later. Keep both.
 
-Audi composition was confirmed approximately 2.6 seconds and 1.3 seconds after
-the respective AA termination notifications. Both decoder sessions report actual
-window ID62 and follow prepare/resume/stop. No `SELECT_FAILED`,
-`SELECT_UNCONFIRMED`, `RELEASE_FAILED` or `RESTORE_UNCONFIRMED` appears in this run.
+You need working SSH/SCP access to the MMI and a network connection between the
+MMI and your PC. This package does not enable SSH. Use the IP address and login
+credentials from your existing SSH setup. Keep the MMI powered and the network
+connection active until the copy finishes.
 
-One `QUERY_FAILED ... query pipe did not close` occurs while video is inactive,
-before the first connection; normal polling recovers before that session starts.
-Keep this as an observed transient, rather than treating the run as error-free.
-The first resume-to-AA-confirmation interval is approximately 15.5 seconds; the
-second is 1.8 seconds. These logs do not establish the cause of that difference.
+Using WinSCP on Windows:
 
-Both stock map-readiness flags became true before the first AA preparation.
-This first run supports automatic connect, disconnect and reconnect on the tested
-layout. The later phone-connected MMI restart below adds startup evidence. The
-package remains candidate4 with the same published SHA-256; no runtime or rollback
-change accompanies these validation records. Raw vehicle logs are private.
+1. Create an empty folder on your PC, for example
+   `A6-C8-P2711-before-ClusterIntegration`. Keep it outside the SD card.
+2. Open WinSCP, choose **New Site**, and enter:
 
-## Phone-connected restart and accepted limitations
+   | Field | Value |
+   |---|---|
+   | File protocol | **SCP** |
+   | Host name | Your MMI's IP address |
+   | Port | Your SSH port, usually `22` |
+   | User name | Your SSH account, usually `root` |
+   | Password | The password for that account |
 
-The owner confirmed an MMI button restart with the phone already connected: AA
-connected automatically and eventually replaced Audi's cockpit map. The subsequent
-log records AA activation at elapsed24.828s, native initialization/first draw at27.295s,
-prepare at27.535s, resume sent at30.120s, and AA composition confirmed at67.770s.
-The readiness gate therefore released after the native flags; the long additional
-wait occurred after the resume request. A query-pipe closure failure was recorded
-at59.514s. The logs locate a query-capture failure during that gap but do not identify
-which part accounts for all the elapsed time. A later reconnect took about3.3s from
-AA activation to composition confirmation.
+3. Connect. The **left panel is your PC**; the **right panel is the MMI**.
+   Open the new backup folder on the left. On the right, open `/mnt`.
+4. Select the remote **`app` folder** and download it to the PC folder. This
+   copies the complete **`/mnt/app` directory from the MMI to the PC**. Use binary
+   transfer mode and keep the original file names and directory structure.
+   Do not upload anything to the MMI for this step.
+5. Let every transfer finish. Resolve any transfer errors before installing.
+   Check these downloaded paths on your PC:
 
-The owner accepts this behavior for the candidate4 release. Known limitations:
+   ```text
+   A6-C8-P2711-before-ClusterIntegration/
+     app/eso/bin/apps/gal
+     app/eso/bin/apps/dio_manager
+     app/eso/hmi/lsd/
+   ```
 
-- Startup takeover can take tens of seconds (about43s from AA activation to cockpit
-  confirmation in the recorded phone-connected restart). There is no fixed30s timer.
-- A transient `QUERY_FAILED ... query pipe did not close` can occur and recover.
-- Switching from the cockpit audio tab back to the map tab can briefly show Audi's
-  map before AA returns. The logs confirm release for HMI policy `[41]`, followed
-  by re-selection when the supported map layout returns.
-- This MMI button restart is not a full vehicle-sleep cold boot. Other firmware,
-  extended cold-boot testing and all alternative layouts remain unverified.
+   The executable files should have non-zero sizes. The local `app` folder should
+   contain the downloaded directory tree, not just a shortcut or an empty folder.
+6. If `/mnt/ota/modkit` already exists on the MMI, also download that folder into
+   a separate `existing-modkit` folder on your PC. It contains existing ModKit
+   state and other installed mods. If it does not exist, note that and continue;
+   do not create it on the unit.
+7. Keep this backup unchanged. Save a note with the vehicle, firmware version,
+   date and whether any mods were already installed. Use a different folder for
+   any later backup.
 
-Candidate4's runtime, installer, margins and recovery payloads are unchanged.
+This is a **file-level backup**, not a complete flash image. The original-file
+copy is available for manual recovery; it is not automatically imported by the
+uninstaller. Normal ClusterIntegration rollback uses the originals retained on
+the unit and the installer backup on the SD card, described below.
 
-## What changes
+## 2. Prepare the released SD package — first installation
 
-The existing player uses separate source62, leaving Audi's native source33 bound.
-The new background controller selects AA only after native-map initialization and
-first draw, a consumed resume command, and registration of both expected sources.
-It preserves the HMI's current ordered layers, substituting62 for33. The verified
-[41,33] family, including optional KDK20, is supported; other layouts release to
-Audi. Native-map suspend/hide/wake and paused-decoder restart heuristics are removed.
+1. Download **`ClusterIntegration_a6_c8_p2711_auto_route62_candidate4.zip`** using
+   the installable-ZIP link in the release description. GitHub's **Source code**
+   downloads and **Code → Download ZIP** are not installation packages.
+2. Check its SHA-256 against the accompanying `.sha256` file. In PowerShell,
+   open the download folder and run:
 
-On pause or stop, the controller calls the **stock** `/eso/bin/apps/dmdt sb 4`,
-which releases the override to the latest HMI-buffered layout. A subsequent query
-must report that layout before fresh AA routing is allowed. `AA_CONFIRMED` and
-`OEM_CONFIRMED` report observed layer lists, not proof of correct visible pixels.
-Disconnect, stale intent during a query/select, unsupported geometry/layout, and
-failed selection fall back to Audi. Failed restoration is logged and blocks a new
-AA selection. A stopped decoder must disappear before a fresh prepare is admitted.
+   ```powershell
+   Get-FileHash -Algorithm SHA256 .\ClusterIntegration_a6_c8_p2711_auto_route62_candidate4.zip
+   ```
 
-AA transport and BAP startup keep their original release code. Mirror-command
-callbacks only queue intent; native tools run on the background guard. Invisible
-H.264 preparation begins once source62 is free, before map readiness, so the decoder
-can consume the small video ring while Audi initializes. Prepare/resume are sent on
-different polls, after the native mailbox is consumed. There is no fixed boot delay.
+   Expected hash, ignoring letter case:
 
-Queries use a private, mode700 RAM copy of the owner's exact stock `dmdt`, pinned
-by SHA-256. Only its query-exit flushing is patched, using the two preflight-tested
-sites. That copy runs **only gs/gd**; all sd/sb controls use installed stock `dmdt`.
-The installed utility and its permissions are unchanged. No stock binary or HMI
-JAR is distributed. The helper is removed on ordinary JVM exit.
+   ```text
+   e340bd30f5a4091974345a22147b4666ad98f2cbe06dc2b01ac9759d0d281d85
+   ```
 
-Only the AA JAR differs from candidate3. The release integration class is retained
-byte for byte, including the existing secondary-video sender wrapper; the original
-104 release method bodies remain unchanged. Player62, hook, signed loader,
-configuration, installer, uninstaller, failsafe and rollback payloads are unchanged.
-No boot or Persist controller is added. Your requested framing remains:
+3. Use an empty SD card formatted as **FAT32**. A card of 32 GB or smaller is
+   straightforward to format on Windows. Formatting erases the card: do not
+   format an existing mod card that holds your only installer backup.
+4. Extract the ZIP into a temporary folder on your PC. Copy **everything inside
+   that extracted folder** to the **root of the SD card**, keeping file timestamps.
+   When you open the card, the layout must be:
 
-```text
-height_margin=358
-margin_top=179
-margin_bottom=180
-inset_bottom=195
-inset_left=160
-```
+   ```text
+   SD card root/
+     Data/
+     Meta/
+     Mods/
+       ClusterIntegration/
+         Update/
+         Persist/
+         config_overrides.txt
+     Logs/
+     README.md
+     LICENSE.md
+   ```
 
-## Install on a copy of the current test card
+   `Data`, `Meta` and `Mods` must be visible immediately, not inside a folder
+   named after the ZIP. Copying the unopened ZIP to the card is not enough.
+   Keep the supplied configuration and all package folders together.
+5. For a normal first installation, use the package as supplied. Do not add an
+   `uninstall.txt` marker or copy `failsafe.sh` to the card root: those select
+   recovery actions. If preparing the card on macOS, remove its `._` metadata
+   files before using it with ModKit.
+6. Safely eject the card and make sure its physical write-protect switch is unlocked.
 
-1. Preserve the untouched current card, **including**
-   `Mods/ClusterIntegration/Update/Backup/` and its manifest. Keep the original
-   pre-mod SCP backup separately. Do not uninstall first.
-2. Extract candidate4 separately. On a **copy** of the test card replace these
-   three files from its ZIP, preserving their timestamps:
+**The three-file replacement method is for upgrades only.** A first installation
+needs the full package, including the `Data`/`Meta` ModKit loader and all of `Mods`.
+
+## 3. Install from the SD card
+
+1. Park the car, disconnect the phone or wireless AA adapter, and start the engine
+   for the update. The SCP backup from step 1 should already be complete on your PC.
+2. Insert the prepared SD card into the MMI's SD slot. The released package includes
+   the ModKit loader; follow its on-screen update prompts and automatic restarts.
+   In the tested setup, the update sequence starts after inserting the card.
+   Allow it to finish; do not manually reboot or remove the card during installation.
+3. Remove the card **when the MMI asks you to remove the update media**, then allow
+   the MMI to restart normally.
+4. Put the card back in your PC. Open **`Logs/ClusterIntegration.log`** on the card.
+   The log is appended on each run: check the **latest installation block** for
+   `ERROR`, `Aborting` or failed backup messages. A final `Done` line alone does
+   not establish a successful install.
+5. The installer should have created:
+
+   ```text
+   Mods/ClusterIntegration/Update/Backup/
+   Mods/ClusterIntegration/Update/Backup/manifest.txt
+   ```
+
+   Copy the **whole SD card** to a new PC folder, for example
+   `A6-C8-P2711-SD-after-candidate4`. This saves the installer backup, manifest,
+   configuration and installation log together. Keep the physical card too.
+   Leave the original SCP backup in its separate, unchanged folder.
+
+If the update does not start, check FAT32 formatting, the root-folder layout and
+the card's write-protect switch first. If the installer refuses the unit, read the
+log before changing anything; `force_install.txt` is not a general repair step.
+
+## 4. Check the result and save logs
+
+1. With the phone disconnected, confirm Audi's map works in the cockpit.
+2. Connect the phone and start AA. After native navigation initializes, AA should
+   take the cockpit automatically. Initial takeover can take tens of seconds;
+   about 43 seconds from AA activation was recorded on a phone-connected reboot.
+3. Disconnect the phone. Audi's map should return automatically. Reconnect once
+   to check that AA returns again.
+
+The installation log is always on the SD card at `Logs/ClusterIntegration.log`.
+For a runtime problem, use WinSCP to download `/tmp/cluster.log` before another
+restart. If daemon logging is enabled, also download `cluster_daemon.log` from
+the USB root or `/tmp/cluster_daemon.log`. Its absence is normal when daemon
+logging is off. To enable it for a later diagnostic run, create an empty
+`Mods/ClusterIntegration/daemon_log.txt` on the card and run the installer again.
+
+## Updating an existing installation
+
+This path applies when ClusterIntegration is already installed and you have
+already kept its original-file and installer backups.
+
+1. Copy the **entire current SD card** to a new folder on your PC before editing
+   it. Preserve `Mods/ClusterIntegration/Update/Backup/` and its `manifest.txt`.
+   Keep your original, pre-ClusterIntegration SCP backup as well. If you take a new
+   SCP backup now, label it as the current modified state.
+2. Extract the new released ZIP into a separate PC folder. On a **working copy**
+   of the current card, replace only these files from that extraction:
 
    ```text
    Mods/ClusterIntegration/Update/cluster
@@ -129,83 +186,76 @@ inset_left=160
    Mods/ClusterIntegration/Update/aa_only/ClusterIntegration_v0034_beta2_candidate_90d0b76_aa.jar
    ```
 
-   The first two are exactly the source62 player and centered hook from your
-   successful candidate3 test. Include them if you restored an older player after
-   that test. Preserve the card's Backup, configuration and existing log markers;
-   do not replace the entire Update folder.
-3. Use the existing ModKit install flow, parked with the engine running, following
-   its removal/restart prompts. Save `Logs/ClusterIntegration.log` from the SD card.
-   Confirm `install:` for the AA JAR. Player/hook can say `skip identical:` if the
-   candidate3 copies are already installed; an older player must be replaced.
-   The unchanged weak-comparison installer depends on file timestamps for equal-size
-   player/hook patches. `force_install.txt` bypasses firmware gating, not copying.
-4. Restart with the phone disconnected. Audi's cockpit map should work normally.
-   The Java log should contain `kombi-guard p2711-auto-route62-candidate4`.
-   Do **not** run the old timed selection script during the automatic test.
+   Accept replacement of those files and preserve their timestamps. Leave the
+   card's Backup folder, manifest, configuration and logging markers in place.
+   Do not replace the entire `Update` folder or extract the whole release over
+   the existing card. Remove any old `uninstall.txt` or root-level `failsafe.sh`
+   recovery marker from the working card before an ordinary installation.
+3. Run the SD installation sequence in step 3 above. **Do not uninstall first**:
+   this is an update of the installed mod, keeping its original-files backup.
+4. Check the installation log and repeat step 4's map checks. The AA JAR should
+   show `install:` when it changes; `skip identical:` is expected for payloads
+   that are already current. Keep another complete card copy after the update.
 
-## First parked test and logs
-
-Start on the same navigation view used for the successful timed test:
-
-1. Let Audi's map appear, then connect the phone. AA should select itself without
-   SSH display commands. Check centering.
-2. Disconnect and wait up to ten seconds. Audi's map should return automatically.
-   Reconnect once and repeat the disconnect check.
-3. If those pass, use the normal MMI button restart with the phone connected.
-   Observe Audi initialize before AA takes the cockpit. This is a warm-restart
-   test; a true vehicle cold boot remains a separate later check.
-
-Keep Java/daemon logging enabled as on the existing test card. Before another
-restart, download `/tmp/cluster.log` using SCP. Download `cluster_daemon.log` from
-the writable USB root if present, otherwise `/tmp/cluster_daemon.log`. Keep the SD
-installation log too. Report which of the three tests you ran and the visible
-result; the layer acknowledgements alone cannot establish success.
-
-Useful Java markers are `MH2P_VIDEO_GATE READY`, `MH2P_AUTO_ROUTE AA_REQUESTED`,
-`AA_CONFIRMED`, `OEM_REQUESTED`, `OEM_CONFIRMED`, and any `QUERY_FAILED`,
-`SELECT_FAILED`, `SELECT_UNCONFIRMED`, `RELEASE_FAILED` or `RESTORE_UNCONFIRMED`.
-Before native readiness, a warm `prepare` without `resume` is expected.
+The installer can use timestamps when deciding whether same-size files changed.
+`force_install.txt` bypasses the firmware gate; it does not force identical files
+to be copied. The A6 C8 package is the same tested candidate4 as the earlier
+Q7-named ZIP, so changing only that outer filename needs no reinstallation.
 
 ## Recovery and rollback
 
-If Audi does not return, disconnect the phone and run this directly in SSH:
+For a cockpit that remains on AA, first disconnect the phone and try this in SSH:
 
 ```sh
 /eso/bin/apps/dmdt sb 4
 ```
 
-If needed, use the normal MMI button restart with the phone disconnected. The
-override is memory-only. Do not use bare `shutdown` over SSH.
+If needed, use the normal MMI button restart with the phone disconnected. Do not
+use bare `shutdown` over SSH; it can halt the HMI without restarting it.
 
-For the previous candidate's behavior, restore the **three payload files** above
-from the untouched previous test card and run the same ModKit install flow.
-Keep that card's Backup intact. This restores that candidate, including its known
-limitations; uninstall is a separate return-to-stock operation. The existing
-uninstaller/failsafe/original-SCP recovery procedure is unchanged. Check restoration
-logs and resulting files; an uninstaller's final `Done` alone is insufficient.
+### Normal uninstall using the SD card
 
-An ordinary JVM shutdown attempts release. A killed/hung JVM cannot execute that
-cleanup; **there is no independent watchdog in this candidate**, so a remaining
-override can require the manual command or MMI restart above. The free-slot check
-prevents taking an already registered62; it is not a permanent reservation against
-a different feature claiming the same ID later. Multiple integration instances in
-one JVM disable this candidate's secondary video until MMI restart. Other firmware,
-layouts and repeated cold boots have not been verified on hardware.
+1. Use the saved installation card with its **Backup folder and manifest intact**.
+   On your PC, create an empty file named exactly
+   **`Mods/ClusterIntegration/uninstall.txt`**, next to the `Update` folder.
+2. Run the same SD/ModKit procedure as installation and follow the media-removal
+   and restart prompts. This invokes the existing uninstaller: it restores the
+   retained original receiver files and removes ClusterIntegration's added files.
+   Other installed ModKit mods are not removed by this marker.
+3. Check `Logs/ClusterIntegration.log` for restoration errors and verify normal
+   Audi navigation and AA operation. Keep all backups after uninstalling.
+   Remove the `uninstall.txt` marker before a future installation.
 
-## Build and verification
+This removes ClusterIntegration; it does not reinstall a previous version or
+remove ModKit's infrastructure. To return to a previous mod version, restore its
+three payload files from its saved card and use the update procedure instead.
 
-```sh
-bash modkit/build_auto_route62.sh /private/stock/lsd.jar \
-  builds/ClusterIntegration_q7_p2711_route62_probe_candidate3.zip \
-  /path/to/NEW-candidate4.zip /path/to/ecj-3.20.jar
-ECJ_JAR=/path/to/ecj-3.20.jar bash modkit/test/readiness_gate.sh
-```
+### Provided failsafe when normal startup is not available
 
-The builder pins the private stock HMI and candidate3 hashes, compiles only owned
-adapter classes to class version48, rejects StringBuilder, verifies unchanged
-release integration and other JAR entries, and requires only the AA JAR payload to
-change in the outer ZIP. Fixtures exercise stale queries/selects, pause/stop,
-reconnect retirement, source collisions, ordered policy changes, unsupported layouts,
-selection/release failures and timeouts, mailbox sequencing, and both readiness flags.
-Host process tests execute shell fixtures only; Audi classes and ARM inputs are
-never executed. These checks do not replace the parked vehicle test.
+If the ModKit early-startup path still runs, its existing failsafe can attempt
+rollback. On the saved card, copy **`Mods/ClusterIntegration/failsafe.sh` to the
+SD card root**, beside `Data`, `Meta` and `Mods`. Boot with that card and allow the
+attempt to complete. Its log is `Logs/ClusterIntegration-failsafe.log`.
+
+After recovery, remove the **root-level** copy of `failsafe.sh`, or it will attempt
+rollback on subsequent boots. Preserve the original script inside the mod folder.
+These recovery paths depend on valid originals/backups. A PC file backup is not
+an automatic whole-unit restore; do not overwrite `/mnt/app` wholesale as a normal
+uninstall step.
+
+## Known behavior and validation
+
+Candidate4 was tested on the owner's Audi A6 C8 with the firmware above. The earlier
+Q7 label came from the upstream base. Automatic connect/disconnect/reconnect and an
+MMI button restart with the phone connected worked. Startup can be slow, returning
+from the cockpit audio tab can briefly show Audi's map, and a transient query-pipe
+error recovered automatically. Full vehicle-sleep cold boots, other firmware and
+all alternative layouts remain unverified.
+
+An ordinary JVM exit attempts to release the display override. A killed or hung
+JVM cannot execute cleanup, so the manual release command or MMI restart can still
+be needed. The installed runtime, requested margins and existing rollback scripts
+are unchanged by these documentation updates.
+
+See [validation, implementation and build details](VALIDATION.md) for the recorded
+tests and reproduction commands.
