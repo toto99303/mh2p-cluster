@@ -10,6 +10,8 @@ Bridge Android Auto navigation from Porsche PCM5 / ~~VW / Audi~~ MH2P to instrum
 >
 > **Download (Audi MH2p, experimental)** [ClusterIntegration_v0034_beta2_candidate_90d0b76_audi.zip](https://github.com/jonny190/mh2p-cluster/raw/main/builds/ClusterIntegration_v0034_beta2_candidate_90d0b76_audi.zip) and read the [Audi section](#audi-mh2p-e-tron-and-other-mlbevo-audis--experimental) first. The Porsche package aborts on an Audi with "Not a Porsche head unit", and copying only the scripts from `modkit/` over it is not enough: the Audi installer also needs `Update/aa_only/` and `Update/audi/`, which are part of the Audi zip.
 
+> **Audi Q7 ER P2711:** [candidate4 release](https://github.com/toto99303/mh2p-cluster/releases/tag/q7-p2711-candidate4) adds verified native-map readiness and automatic AA/Audi cockpit switching. Tested on the owner's MH2p_ER_AUG35_P2711; startup takeover can take tens of seconds. Read the [Q7 installation and rollback guide](audi/q7-p2711/AUTO_ROUTE62.md) before installing.
+
 ---
 
 ## Overview
@@ -169,6 +171,14 @@ The easiest way is to just scp it to the target if you <a href="https://github.c
 ## Audi MH2p (e-tron and other MLBevo Audis) — experimental
 
 > **Audi Q7 (P2711) profile:** full-width map in the Virtual Cockpit with the car marker above Audi's bottom bar, native-map hiding, and fixes for a black cockpit and repeated reconnects. See [audi/q7-p2711](audi/q7-p2711/README.md).
+>
+> **Experimental ER P2711 cold-start candidate:** [readiness gate and rollback notes](audi/q7-p2711/COLD_START_GATE.md). Host-tested only; use its dedicated builder, which preserves every v1.5 package entry except the AA JAR.
+>
+> **Candidate 2 — native-map hand-back:** [candidate 2 instructions](audi/q7-p2711/HAND_BACK_CANDIDATE2.md). Vehicle testing still leaves the cockpit black despite acknowledged renderer wake/visibility.
+>
+> **Candidate 2 result and centered framing:** [Screen-state diagnostics and left inset 160](audi/q7-p2711/CENTERED_DIAGNOSTICS.md). Native service reports Active/visible after unplug but the cockpit remains black; the centered ZIP changes framing only.
+
+> **Candidate 3 — manual routing probe:** [separate AA source62 and 12-second selection test](audi/q7-p2711/ROUTE62_PROBE.md). Preserves native source33; automatic selection is not implemented. Development test only, with the existing rollback payload preserved.
 
 > **Status:** running on an e-tron 55 (`MH2p_ER_AUG35_P2873`, UK, RHD): the shadowed Java class loads, turn-by-turn services are found, the phone streams the cluster map and the virtual cockpit shows it; the cockpit fit is solved; what is being tested now is the hand-back to the Audi map when Android Auto ends (see [Handing the cockpit back](#handing-the-cockpit-back-to-the-audi-map-when-android-auto-ends)). The port changes the install gate and packaging: the native binaries and the config are byte-identical to the Porsche release except for three verified byte patches the package build applies (the boot splash image inside `cluster` from `modkit/splash/splash.png`, see [Changing the cockpit loading splash](#changing-the-cockpit-loading-splash); the decoder ring-start fix from PR #11 inside `cluster`, `modkit/patches/cluster.patches.txt`; and the 54-byte cluster display entry inside `gal_cluster.so` from `modkit/template/template.txt`, see [Fitting the map](#fitting-the-map-to-the-e-trons-cockpit)), the Java classes are the release classes (on Audi the installer uses a copy of the JAR with the CarPlay classes dropped) plus two added classes, a no-op stand-in for the Porsche-only `StorageMountHandler` that the Audi HMI does not ship and `KombiMapGuard`, which hides the Audi map while the video renders and gives the cockpit back to it afterwards, and a rebuilt `AndroidAuto2Subsystem` that starts it.
 
