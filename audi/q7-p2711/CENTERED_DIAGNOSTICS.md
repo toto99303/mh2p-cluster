@@ -15,6 +15,11 @@ No speculative display-context number or compositor command is applied.
 
 ## Capture on the existing candidate 2 installation — no mod install required
 
+Use script V2 (`MH2P_SCREEN_SNAPSHOT_V2_SINGLE_FILE`). The first version tried
+to create output directories; the vehicle reports `Function not implemented`
+for mkdir under `/tmp`. V2 creates one plain text file per snapshot and never
+calls mkdir. Replace any previously uploaded script with this version.
+
 Download [capture_mh2p_screen.sh](../../modkit/diagnostics/capture_mh2p_screen.sh)
 (use Download raw file) and keep it on your computer. After the restart in
 step 1, copy it to `/tmp/capture_mh2p_screen.sh` using the same SCP client used
@@ -30,37 +35,39 @@ While parked:
    In the MMI SSH terminal, run:
 
    ```sh
-   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-oem
+   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-oem.txt
    ```
 
 3. Connect the phone, confirm AA appears, wait 15 seconds, and run:
 
    ```sh
-   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-aa
+   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-aa.txt
    ```
 
 4. Disconnect the phone and wait 15 seconds with the cockpit black. Run:
 
    ```sh
-   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-black
+   ksh /tmp/capture_mh2p_screen.sh /tmp/mh2p-screen-black.txt
    ```
 
-5. Before rebooting, download all three output folders using SCP, ZIP them, and
-   upload them in the private troubleshooting conversation. If a folder already
-   exists, choose a new output name with a numeric suffix; the script refuses
-   to overwrite a snapshot.
+5. Before rebooting, download the three text files using SCP and upload them
+   in the private troubleshooting conversation. If a filename already exists,
+   choose a new filename, such as `/tmp/mh2p-screen-oem-2.txt`; the script refuses
+   to overwrite an existing file or directory.
 
 The script reads process names, directory listings and text window/display
-properties under `/dev/screen`. It copies only existing cluster-related logs
-from `/tmp`, writes private-by-default output files only in the requested new
-snapshot directory, and sends no Screen property-setting commands. It does not
+properties under `/dev/screen`. It writes one private-by-default report to the
+new output filename supplied, with read errors included in the same file. It
+sends no Screen property-setting commands and copies no runtime logs. It does not
 read pixel buffers, BMP screenshots, context/control channels, Wi-Fi files or
-other `/tmp` contents. Existing runtime logs can contain navigation information.
+other `/tmp` contents. Each property read is limited to 16 KiB and the script
+stops after 128 property files, explicitly marking the report incomplete.
 
-If Screen debug support or permissions are unavailable, `summary.txt` and
-`errors.txt` record that limitation. Missing properties are not proof that a
-window does not exist. No debug module is enabled or installed by this script.
-The script was tested against host fixtures using bash, not run on QNX hardware.
+If Screen debug support or permissions are unavailable, the report records
+that limitation. Missing properties are not proof that a window does not exist.
+No debug module is enabled or installed by this script. The script was tested
+against host fixtures using bash, including a fixture where every mkdir call
+would fail; it has not yet been run on QNX hardware.
 
 QNX documents the older nested `win-N/win-N` layout in the
 [6.6 documentation](https://www.qnx.com/developers/docs/6.6.0_anm11_wf10/),

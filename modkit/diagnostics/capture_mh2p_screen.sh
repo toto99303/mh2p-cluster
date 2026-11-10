@@ -1,75 +1,89 @@
 #!/bin/ksh
-# Read-only MH2p Screen snapshot. Run manually over SSH; never installed at boot.
-# Reads process/window/display state and copies only existing cluster logs.
-# Writes ONLY to the new output directory supplied as its one argument.
+# Read-only MH2p Screen snapshot, V2. Run manually over SSH, never at boot.
+# /tmp can be a flat shared-memory namespace: create ONE file, no directories.
+# Reads process/window/display state; writes only the new output file supplied.
 # Licensed under CC BY-NC-SA 4.0, matching this repository.
 set -u
 if [ "$#" -ne 1 ]; then
-    echo "usage: ksh $0 /tmp/mh2p-screen-oem (use a NEW directory per snapshot)" >&2
+    echo "usage: ksh $0 /tmp/mh2p-screen-oem.txt (use a NEW file per snapshot)" >&2
     exit 2
 fi
 OUT="$1"
 case "$OUT" in
     /*) ;;
-    *) echo "ERROR: supply an absolute output directory" >&2; exit 2 ;;
+    *) echo "ERROR: supply an absolute output filename" >&2; exit 2 ;;
 esac
 if [ -e "$OUT" ]; then
-    echo "ERROR: output already exists; choose a new directory: $OUT" >&2
+    echo "ERROR: output already exists; choose a new filename: $OUT" >&2
     exit 2
 fi
-# Private-by-default snapshots; collect only the text window/display properties,
-# not pixel buffers, Screen control channels, Wi-Fi files, or the whole /tmp.
 umask 077
-mkdir -p "$OUT" || exit 2
+# noclobber also protects against an existing file appearing after the check.
+if ! (set -C; : > "$OUT") 2>/dev/null; then
+    echo "ERROR: cannot create $OUT; use a new filename in an existing writable location" >&2
+    exit 2
+fi
 SCREEN_ROOT="${MH2P_SCREEN_ROOT:-/dev/screen}"
-LOG_ROOT="${MH2P_LOG_ROOT:-/tmp}"
 PATH="${PATH:-/bin:/usr/bin}:/mnt/app/armle/usr/bin:/mnt/app/armle/bin"
-{
-    echo "MH2P_SCREEN_SNAPSHOT_V1"
+count=0
+attempts=0
+limit=128
+capture() {
+    echo "MH2P_SCREEN_SNAPSHOT_V2_SINGLE_FILE"
     date
     echo "screen root: $SCREEN_ROOT"
-    echo "Read-only source inspection; only snapshot output files are written."
-} > "$OUT/summary.txt"
-if command -v pidin >/dev/null 2>&1; then
-    pidin ar > "$OUT/processes.txt" 2>> "$OUT/errors.txt"
-else
-    echo "pidin unavailable" >> "$OUT/summary.txt"
-fi
-if [ -d "$SCREEN_ROOT" ]; then
-    ls -la "$SCREEN_ROOT" > "$OUT/screen-root-list.txt" 2>> "$OUT/errors.txt"
-    count=0
-    for owner in "$SCREEN_ROOT"/[0-9]*; do
-        [ -d "$owner" ] || continue
-        pid="${owner##*/}"
-        # Only numeric process directories, including Screen's own PID 0.
-        case "$pid" in *[!0-9]*|'') continue ;; esac
-        ls -la "$owner" > "$OUT/screen-$pid-list.txt" 2>> "$OUT/errors.txt"
-        for object in "$owner"/win-* "$owner"/dpy-*; do
-            label="${object##*/}"
-            props="$object"
-            # Older Screen versions expose win-N/win-N rather than win-N.
-            if [ -d "$props" ]; then props="$props/$label"; fi
-            [ -f "$props" ] || continue
-            # Limit each textual property snapshot to 64 KiB. Never read BMP,
-            # context/request channels or binary ring buffers.
-            if dd if="$props" of="$OUT/screen-$pid-$label.txt" bs=1024 count=64 2>> "$OUT/errors.txt"; then
-                count=$((count + 1))
-            else
-                echo "read failed: $props" >> "$OUT/summary.txt"
-            fi
+    echo "Read-only inspection; no directories, Screen contexts or property changes."
+    echo "=== PROCESSES ==="
+    if command -v pidin >/dev/null 2>&1; then
+        pidin ar
+    else
+        echo "pidin unavailable"
+    fi
+    if [ -d "$SCREEN_ROOT" ]; then
+        echo "=== SCREEN ROOT LIST ==="
+        ls -la "$SCREEN_ROOT"
+        for owner in "$SCREEN_ROOT"/[0-9]*; do
+            [ -d "$owner" ] || continue
+            pid="${owner##*/}"
+            case "$pid" in *[!0-9]*|'') continue ;; esac
+            echo "=== SCREEN OWNER $pid LIST ==="
+            ls -la "$owner"
+            for object in "$owner"/win-* "$owner"/dpy-*; do
+                label="${object##*/}"
+                props="$object"
+                # QNX 6.6 may expose win-N/win-N instead of a flat win-N file.
+                if [ -d "$props" ]; then props="$props/$label"; fi
+                [ -f "$props" ] || continue
+                if [ "$attempts" -ge "$limit" ]; then
+                    echo "Property-read limit reached ($limit); snapshot is incomplete."
+                    return
+                fi
+                attempts=$((attempts + 1))
+                echo "=== PROPERTY: $props ==="
+                # Only text properties: at most 16 KiB each, at most 128 files.
+                # Never read BMPs, pixel buffers, context/control channels or
+                # binary request rings. Read errors stay in this report.
+                if dd if="$props" bs=1024 count=16; then
+                    count=$((count + 1))
+                else
+                    echo "read failed: $props"
+                fi
+                echo ""
+                echo "=== END PROPERTY ==="
+            done
         done
-    done
-    echo "text window/display snapshots: $count" >> "$OUT/summary.txt"
-    if [ "$count" -eq 0 ]; then
-        echo "No readable window/display properties. Screen debug support or permissions may be unavailable." >> "$OUT/summary.txt"
+        echo "text window/display snapshots: $count"
+        if [ "$count" -eq 0 ]; then
+            echo "No readable window/display properties. Screen debug support or permissions may be unavailable."
+        fi
+    else
+        echo "Screen debug directory unavailable; no window ownership conclusion can be drawn."
     fi
-else
-    echo "Screen debug directory unavailable; no window ownership conclusion can be drawn." >> "$OUT/summary.txt"
+    echo "=== END SNAPSHOT ==="
+}
+if ! capture >> "$OUT" 2>&1; then
+    echo "ERROR: snapshot capture/write failed; inspect $OUT" >&2
+    exit 1
 fi
-for name in cluster.log cluster_daemon.log cluster_daemon_start.log gal_preload.log; do
-    if [ -f "$LOG_ROOT/$name" ]; then
-        cp "$LOG_ROOT/$name" "$OUT/$name" 2>> "$OUT/errors.txt"
-    fi
-done
-echo "Snapshot complete: $OUT"
-echo "Read summary.txt and errors.txt; compare OEM-working and disconnected-black snapshots."
+echo "Snapshot saved: $OUT"
+echo "Download this ONE file using SCP before rebooting."
