@@ -5,6 +5,12 @@ this player, AA cockpit video needs the manual probe below to be selected. Use i
 parked, on the navigation view, for this test; restore the previous player afterwards.
 The primary MMI AA connection and the existing readiness gate are unchanged.
 
+**Owner result, 2026-11-11:** both sources33/62 were present; the timed probe
+displayed AA for 12 seconds, then restored Audi's map while the phone was still
+connected. Disconnecting the phone left Audi's map working. This validates one
+manual selection/release cycle on the target car, not automatic lifecycle,
+layout changes, repeated cycles or full cold boot.
+
 [Download the probe ZIP](../../builds/ClusterIntegration_q7_p2711_route62_probe_candidate3.zip)
 (Download raw file) ·
 [SHA-256](../../builds/ClusterIntegration_q7_p2711_route62_probe_candidate3.zip.sha256) ·
@@ -146,8 +152,9 @@ inset_left=160
 
 Unspecified values stay as before: inset_right160, density215, real_density215.
 The five shell-fixture refusal/failure cases, cleanup on interruption, archive
-integrity and unchanged executable sections are host-tested. QNX execution, source62
-registration, its geometry and visible AA/native hand-back remain unverified.
+integrity and unchanged executable sections are host-tested. The owner subsequently
+confirmed one successful manual QNX selection/release cycle, as recorded above.
+Automatic lifecycle, other geometries/layouts and repeatability remain unverified.
 
 Rebuild and run host checks:
 
