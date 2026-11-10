@@ -74,4 +74,4 @@ print('displaymanager reports query data' if sys.argv[4]=='gs' else 'displaymana
     r=subprocess.run(['bash',str(SCRIPT),str(report)],env=env,capture_output=True,text=True)
     assert r.returncode==2 and not report.exists() and not Path(str(prefix)+'.bin').exists()
     print('PASS unexpected patch site refused before temporary copying/execution')
-print('Static/host tests only; temporary ELF execution on QNX is unverified.')
+print('Host tests only; the owner separately confirmed query-copy gs/gd execution as java on QNX.')

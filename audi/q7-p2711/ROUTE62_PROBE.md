@@ -1,5 +1,8 @@
 # P2711 candidate 3: manual, timed AA routing probe
 
+The owner confirmed successful manual routing and captured queries as `java`.
+[Candidate4](AUTO_ROUTE62.md) implements the automatic controller for vehicle testing.
+
 **This is a development test, not an automatic map hand-back fix.** After installing
 this player, AA cockpit video needs the manual probe below to be selected. Use it
 parked, on the navigation view, for this test; restore the previous player afterwards.
