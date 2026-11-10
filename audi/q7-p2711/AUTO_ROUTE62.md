@@ -1,12 +1,14 @@
 # P2711 candidate 4: automatic AA selection and Audi-map return
 
-Development candidate for the owner's **MH2p_ER_AUG35_P2711**, 1920x722 cockpit.
+Candidate4 release for the owner's **MH2p_ER_AUG35_P2711**, 1920x722 cockpit.
+[GitHub release](https://github.com/toto99303/mh2p-cluster/releases/tag/q7-p2711-candidate4).
 The owner confirmed that the candidate3 timed test selected source62 for 12 seconds
 and restored Audi's map before disconnecting the phone. The captured `gs`/`gd`
 preflight also succeeded as user `java`. **The owner now reports successful
 automatic switching with candidate4; the uploaded logs show two complete AA
-selection/Audi-return cycles.** Startup with the phone already connected and
-longer cold-boot testing remain unverified for this candidate.
+selection/Audi-return cycles.** The owner subsequently confirmed an MMI button
+restart with the phone connected: AA automatically took the cockpit after a slow
+startup. Full vehicle-sleep cold boots and other firmware remain unverified.
 
 [Download candidate4 ZIP](../../builds/ClusterIntegration_q7_p2711_auto_route62_candidate4.zip)
 (Download raw file) ·
@@ -34,11 +36,35 @@ The first resume-to-AA-confirmation interval is approximately 15.5 seconds; the
 second is 1.8 seconds. These logs do not establish the cause of that difference.
 
 Both stock map-readiness flags became true before the first AA preparation.
-This run therefore supports automatic connect, disconnect and reconnect on the
-tested layout, but does not exercise AA arriving before native-map readiness,
-an MMI restart with the phone attached, or a true vehicle cold boot with AA attached.
-The package remains candidate4 with the same published SHA-256; no runtime or
-rollback change accompanies this validation record. Raw vehicle logs are private.
+This first run supports automatic connect, disconnect and reconnect on the tested
+layout. The later phone-connected MMI restart below adds startup evidence. The
+package remains candidate4 with the same published SHA-256; no runtime or rollback
+change accompanies these validation records. Raw vehicle logs are private.
+
+## Phone-connected restart and accepted limitations
+
+The owner confirmed an MMI button restart with the phone already connected: AA
+connected automatically and eventually replaced Audi's cockpit map. The subsequent
+log records AA activation at elapsed24.828s, native initialization/first draw at27.295s,
+prepare at27.535s, resume sent at30.120s, and AA composition confirmed at67.770s.
+The readiness gate therefore released after the native flags; the long additional
+wait occurred after the resume request. A query-pipe closure failure was recorded
+at59.514s. The logs locate a query-capture failure during that gap but do not identify
+which part accounts for all the elapsed time. A later reconnect took about3.3s from
+AA activation to composition confirmation.
+
+The owner accepts this behavior for the candidate4 release. Known limitations:
+
+- Startup takeover can take tens of seconds (about43s from AA activation to cockpit
+  confirmation in the recorded phone-connected restart). There is no fixed30s timer.
+- A transient `QUERY_FAILED ... query pipe did not close` can occur and recover.
+- Switching from the cockpit audio tab back to the map tab can briefly show Audi's
+  map before AA returns. The logs confirm release for HMI policy `[41]`, followed
+  by re-selection when the supported map layout returns.
+- This MMI button restart is not a full vehicle-sleep cold boot. Other firmware,
+  extended cold-boot testing and all alternative layouts remain unverified.
+
+Candidate4's runtime, installer, margins and recovery payloads are unchanged.
 
 ## What changes
 

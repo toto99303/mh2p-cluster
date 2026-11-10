@@ -10,6 +10,8 @@ Bridge Android Auto navigation from Porsche PCM5 / ~~VW / Audi~~ MH2P to instrum
 >
 > **Download (Audi MH2p, experimental)** [ClusterIntegration_v0034_beta2_candidate_90d0b76_audi.zip](https://github.com/jonny190/mh2p-cluster/raw/main/builds/ClusterIntegration_v0034_beta2_candidate_90d0b76_audi.zip) and read the [Audi section](#audi-mh2p-e-tron-and-other-mlbevo-audis--experimental) first. The Porsche package aborts on an Audi with "Not a Porsche head unit", and copying only the scripts from `modkit/` over it is not enough: the Audi installer also needs `Update/aa_only/` and `Update/audi/`, which are part of the Audi zip.
 
+> **Audi Q7 ER P2711:** [candidate4 release](https://github.com/toto99303/mh2p-cluster/releases/tag/q7-p2711-candidate4) adds verified native-map readiness and automatic AA/Audi cockpit switching. Tested on the owner's MH2p_ER_AUG35_P2711; startup takeover can take tens of seconds. Read the [Q7 installation and rollback guide](audi/q7-p2711/AUTO_ROUTE62.md) before installing.
+
 ---
 
 ## Overview
