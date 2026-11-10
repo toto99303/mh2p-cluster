@@ -2,7 +2,6 @@ package de.audi.app.terminalmode.smartphone.androidauto2.nav;
 
 import de.audi.app.terminalmode.IContext;
 import de.audi.app.terminalmode.device.TMDevice;
-import org.dsi.ifc.map.DSIMapViewerControl;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceReference;
 import org.osgi.util.tracker.ServiceTracker;
@@ -19,7 +18,7 @@ import java.lang.reflect.Method;
  */
 public class KombiMapGuard implements Runnable, ServiceTrackerCustomizer {
 
-    public static final String BUILD = "kombi-guard p2711-readiness-gate";
+    public static final String BUILD = "kombi-guard p2711-stock-handover-candidate2";
 
     private static final String MAP_CLUSTER_CLASS = "de.audi.tghu.navi.app.cluster.IMapClusterService";
     private static final String CLUSTER_CTL = "/tmp/cluster_ctl";
@@ -27,7 +26,6 @@ public class KombiMapGuard implements Runnable, ServiceTrackerCustomizer {
     private static final int CL_PREPARED = 1;
     private static final int CL_RENDERING = 2;
     private static final int CL_PAUSED = 3;
-    private static final int KOMBI_INSTANCE = 3;
     private static final long POLL_MS = 1000L;
     private static final long LOOKUP_RETRY_MS = 5000L;
     private static final long REAPPLY_MS = 10000L;
@@ -40,10 +38,11 @@ public class KombiMapGuard implements Runnable, ServiceTrackerCustomizer {
 
     private final IContext context;
     private final AndroidAutoClusterIntegration integration;
+    private final Mh2pMapHandover handover;
+    private long observeAt;
     private Field stateField;
     private BundleContext bundleContext;
     private ServiceTracker tracker;
-    private DSIMapViewerControl kombiViewer;
     private volatile Object mapClusterService;
     private String lastGateError;
     private long lastLookup = 0L;
@@ -64,6 +63,7 @@ public class KombiMapGuard implements Runnable, ServiceTrackerCustomizer {
     private KombiMapGuard(IContext context, AndroidAutoClusterIntegration integration) {
         this.context = context;
         this.integration = integration;
+        this.handover = new Mh2pMapHandover(integration);
     }
 
     /** Starts the guard thread. Never throws. */
@@ -106,7 +106,7 @@ public class KombiMapGuard implements Runnable, ServiceTrackerCustomizer {
 
     private void tick() throws Exception {
         long now = System.currentTimeMillis();
-        if ((kombiViewer == null || mapClusterService == null) && now - lastLookup >= LOOKUP_RETRY_MS) {
+        if ((mapClusterService == null) && now - lastLookup >= LOOKUP_RETRY_MS) {
             lastLookup = now;
             lookup();
         }
@@ -129,8 +129,9 @@ public class KombiMapGuard implements Runnable, ServiceTrackerCustomizer {
         if (rendering && (!hidden || now - lastApply >= REAPPLY_MS)) {
             if (!hidden) {
                 showAt = 0L;
-                log("AA video rendering, hiding native cockpit map"
-                        + " (viewer=" + (kombiViewer != null) + " mapCluster=" + (mapClusterService != null) + ")");
+                reshowAt = 0L;
+                observeAt = 0L;
+                log("AA video rendering, hiding native cockpit map through stock request wrapper");
             }
             hideNative(!hidden || !suspended);
             hidden = true;
@@ -143,15 +144,24 @@ public class KombiMapGuard implements Runnable, ServiceTrackerCustomizer {
         }
         if (showAt != 0L && now >= showAt) {
             showAt = 0L;
-            showNative();
-            reshowAt = now + RESHOW_MS;
+            if (!rendering && stateField.getInt(integration) != CL_PREPARED) {
+                showNative();
+                observeAt = now + 2000L;
+                reshowAt = now + RESHOW_MS;
+            }
         }
         if (reshowAt != 0L && now >= reshowAt) {
             reshowAt = 0L;
-            if (!rendering && !hidden) {
+            if (!rendering && !hidden && stateField.getInt(integration) != CL_PREPARED) {
                 log("showing native cockpit map again (state=" + stateField.getInt(integration) + ")");
                 showNative();
+                observeAt = now + 2000L;
             }
+        }
+        if (observeAt != 0L && now >= observeAt) {
+            observeAt = 0L;
+            if (!rendering && stateField.getInt(integration) != CL_PREPARED)
+                handover.observe(mapClusterService);
         }
         if (splashPending) {
             int state = stateField.getInt(integration);
@@ -227,42 +237,16 @@ public class KombiMapGuard implements Runnable, ServiceTrackerCustomizer {
         }
     }
 
-    /** Viewer suspended once per session; visibility and context re-applied. */
+    /** Use stock request wrappers so renderer acknowledgements have matching state. */
     private void hideNative(boolean suspend) {
-        if (kombiViewer != null) {
-            if (suspend) {
-                try {
-                    kombiViewer.suspendMapViewer();
-                    suspended = true;
-                    log("native kombi map viewer suspended");
-                } catch (Throwable t) {
-                    log("suspendMapViewer failed: " + t);
-                }
-            }
-            try {
-                kombiViewer.viewSetVisible(false);
-            } catch (Throwable t) {
-                log("viewSetVisible(false) failed: " + t);
-            }
-        }
+        boolean sent = handover.hide(mapClusterService, suspend);
+        if (sent && suspend) suspended = true;
         callMapCluster("switchKombiMapToHiddenContext");
     }
 
-    /** No notifyViewSizeChanged here: it shrinks the cockpit map layout. */
     private void showNative() {
-        if (kombiViewer != null) {
-            try {
-                if (suspended) {
-                    kombiViewer.wakeupMapViewer();
-                }
-                kombiViewer.viewSetVisible(true);
-                kombiViewer.viewFreeze(false);
-                log("native kombi map viewer woken");
-            } catch (Throwable t) {
-                log("waking native viewer failed: " + t);
-            }
-        }
-        suspended = false;
+        // Restore native context first; a later context pause can otherwise
+        // overwrite visibility that was set before these calls.
         callMapCluster("switchKombiMapToHiddenContext");
         callMapCluster("switchKombiMapToAShownContext");
         try {
@@ -273,6 +257,7 @@ public class KombiMapGuard implements Runnable, ServiceTrackerCustomizer {
         } catch (Throwable t) {
             log("notifyViewSizeChanged failed: " + t);
         }
+        if (handover.restore(mapClusterService)) suspended = false;
         splashPending = true;
     }
 
@@ -374,23 +359,6 @@ public class KombiMapGuard implements Runnable, ServiceTrackerCustomizer {
     }
 
     private void lookup() {
-        if (kombiViewer == null) {
-            try {
-                ServiceReference[] refs = context.getServiceManager().getServiceReferences(DSIMapViewerControl.class);
-                for (int i = 0; refs != null && i < refs.length; i++) {
-                    Object inst = refs[i].getProperty("DEVICE_INSTANCE");
-                    if (inst instanceof Integer && ((Integer) inst).intValue() == KOMBI_INSTANCE) {
-                        kombiViewer = (DSIMapViewerControl) context.getServiceManager().getService(refs[i]);
-                        if (kombiViewer != null) {
-                            log("DSIMapViewerControl(KOMBI=3) found");
-                        }
-                        break;
-                    }
-                }
-            } catch (Throwable t) {
-                log("DSIMapViewerControl lookup failed: " + t);
-            }
-        }
         if (mapClusterService == null) {
             try {
                 Class c = Class.forName(MAP_CLUSTER_CLASS);

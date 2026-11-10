@@ -28,7 +28,8 @@ PY
 NAV=de/audi/app/terminalmode/smartphone/androidauto2/nav
 java -jar "$ECJ" -1.4 -source 1.4 -target 1.4 -g:lines,source -nowarn \
     -cp "$TASK_WORK/base.jar:$STOCK" -d "$TASK_WORK/classes" \
-    "$REPO/audi/q7-p2711/readiness/$NAV/KombiMapGuard.java" "$REPO/audi/q7-p2711/readiness/$NAV/Mh2pVideoGate.java"
+    "$REPO/audi/q7-p2711/readiness/$NAV/KombiMapGuard.java" "$REPO/audi/q7-p2711/readiness/$NAV/Mh2pVideoGate.java" \
+    "$REPO/audi/q7-p2711/readiness/$NAV/Mh2pMapHandover.java"
 javac -cp "$ASM" -d "$TASK_WORK/host" "$HERE/java/GateReleaseClass.java"
 python3 - "$TASK_WORK/base.jar" "$TASK_WORK/original.class" <<'PY'
 import hashlib, pathlib, sys, zipfile

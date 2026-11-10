@@ -95,6 +95,11 @@ Perform the normal rollback check and preserve its log before daily use.
 
 ## Rebuild and host tests
 
+This page records candidate 1. The current overlay also includes the subsequent
+[candidate 2 native-map hand-back changes](HAND_BACK_CANDIDATE2.md). To reproduce
+candidate 1 specifically, use commit `7b0e527a458a3c930bb68fbca3e49646004b7f5c`.
+
+
 Requires a JDK, ECJ 3.20.0 and ASM 9.7.1 (host build dependencies only):
 
 ```
