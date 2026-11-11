@@ -13,6 +13,7 @@ remove the installed controller.
 
 [Withdrawn release notice](https://github.com/toto99303/mh2p-cluster/releases/tag/a6-c8-p2711-candidate4)
 · [Stability investigation and host reproduction](STABILITY.md)
+· [Freeze/restart troubleshooting and PC-side capture](TROUBLESHOOTING.md)
 
 The reported unit is an Audi A6 C8 with MH2p_ER_AUG35_P2711 and a 1920x722 cockpit.
 The backup/installation instructions below are retained as reference. **They are

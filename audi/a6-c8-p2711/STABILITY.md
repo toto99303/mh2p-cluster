@@ -9,6 +9,11 @@ The short functional tests established connect/disconnect switching and one
 phone-connected MMI restart. They did not establish long-running stability.
 There is no validated corrected installable build yet.
 
+For evidence collection and a comparison with the mod removed, follow the
+[freeze/restart troubleshooting guide](TROUBLESHOOTING.md). Its manual collector
+streams process observations to a file on the PC so a reboot does not erase
+the received data. It does not run display queries or modify the controller.
+
 ## Confirmed implementation defect
 
 Candidate4 runs `gs` and `gd` through a temporary query copy on each guard tick,
