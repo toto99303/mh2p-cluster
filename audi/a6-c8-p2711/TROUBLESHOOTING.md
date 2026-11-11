@@ -28,7 +28,8 @@ files; do not change permissions or delete anything on the MMI.
 
 The crash paths above come from this car's captured `dumper` and JVM command
 lines. A directory can be empty or a hang can leave no crash report. Missing
-reports do not rule out a fault. Do not enable extra verbose logging yet.
+reports do not rule out a fault. The collector below also records these directory
+listings. Do not enable extra verbose logging yet.
 
 In a short note, record the installed package/updates, approximate elapsed time
 to the fault, whether the phone was connected, and which screens were in use.
@@ -120,6 +121,14 @@ that log before proceeding. Keep the original SCP backup unchanged.
 The current uninstaller has weak error handling. Its completion message does not
 prove that every file was restored. Also, an SSH-only uninstall cannot unload
 classes already running in the JVM: a full MMI restart is necessary afterwards.
+
+After that restart, use WinSCP to inspect `/mnt/app/eso/hmi/lsd/jars/`: there
+should be no files beginning **`ClusterIntegration_`** or **`AndroidAutoCluster_`**.
+Download `/mnt/app/eso/bin/apps/gal` into a new PC folder and compare its SHA-256
+with `app/eso/bin/apps/gal` from your original, pre-mod SCP backup. PowerShell's
+`Get-FileHash -Algorithm SHA256` accepts each file path; the two hashes should
+match if the firmware has not changed. Retained JARs or a receiver mismatch mean
+the baseline is not established yet: preserve the uninstall log for inspection.
 
 Check ordinary MMI operation, AA on the main display and Audi's cockpit map.
 Then repeat the health capture, saving **`mh2p-health-baseline.txt`**, with the
