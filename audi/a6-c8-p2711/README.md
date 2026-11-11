@@ -1,19 +1,23 @@
-# Audi A6 C8 P2711 candidate4: backup, installation and rollback
+# Audi A6 C8 P2711 candidate4 — withdrawn: recovery and reference notes
 
-Tested on an **Audi A6 C8**, firmware **MH2p_ER_AUG35_P2711**, with a 1920x722
-Virtual Cockpit. Android Auto must already work on the main MMI screen.
+**Candidate4 is withdrawn from recommended use.** The owner reports that the MMI
+freezes after running for some time and then reboots. Short connect/disconnect
+checks did not establish long-term stability. No corrected installable build has
+been validated.
 
-[Release and installable ZIP](https://github.com/toto99303/mh2p-cluster/releases/tag/a6-c8-p2711-candidate4)
-· [ZIP file](../../builds/ClusterIntegration_a6_c8_p2711_auto_route62_candidate4.zip)
-· [SHA-256 file](../../builds/ClusterIntegration_a6_c8_p2711_auto_route62_candidate4.zip.sha256)
+**Already installed?** Preserve your original SCP backup and the complete SD card,
+including `Mods/ClusterIntegration/Update/Backup/` and its manifest. Use
+[Recovery and rollback](#recovery-and-rollback) below to remove ClusterIntegration
+with the existing saved-card procedure. A button restart or `dmdt sb 4` does not
+remove the installed controller.
 
-**First installation:** follow steps 1–4 below. First copy the original files from
-the MMI to your PC using SCP; then put the **full released package** on an SD card.
+[Withdrawn release notice](https://github.com/toto99303/mh2p-cluster/releases/tag/a6-c8-p2711-candidate4)
+· [Stability investigation and host reproduction](STABILITY.md)
 
-**Already have ClusterIntegration installed?** Keep your existing pre-install
-backup and use [Updating an existing installation](#updating-an-existing-installation).
-A new SCP copy of an already modified unit is a current-state backup, not an
-original-files backup. If candidate4 is already working, this is the same build.
+The reported unit is an Audi A6 C8 with MH2p_ER_AUG35_P2711 and a 1920x722 cockpit.
+The backup/installation instructions below are retained as reference. **They are
+not a recommendation to install candidate4.** A new SCP copy of an already modified
+unit is a current-state backup, not an original-files backup.
 
 ## 1. Back up the original files to your PC via SCP
 

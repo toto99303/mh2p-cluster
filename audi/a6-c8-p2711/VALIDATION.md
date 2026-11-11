@@ -1,4 +1,9 @@
-# A6 C8 candidate4: validation and implementation notes
+# A6 C8 candidate4: historical validation and implementation notes
+
+**Withdrawn after the owner reported MMI freezes and reboots.** The short-run
+results below demonstrate switching behavior only; they do not establish runtime
+stability. See the [current stability investigation](STABILITY.md) and
+[recovery instructions](README.md#recovery-and-rollback).
 
 [Installation, SCP backup and rollback guide](README.md).
 
