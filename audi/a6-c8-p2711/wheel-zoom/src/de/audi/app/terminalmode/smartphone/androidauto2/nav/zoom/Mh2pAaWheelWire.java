@@ -10,8 +10,8 @@ import java.io.ByteArrayOutputStream;
  */
 public final class Mh2pAaWheelWire {
     private Mh2pAaWheelWire() { }
-    public static byte[] inputReport(long timestampMicros, int steps) {
-        if (timestampMicros < 0 || steps == 0 || steps < -16 || steps > 16)
+    public static byte[] inputReport(long timestampNanos, int steps) {
+        if (timestampNanos < 0 || steps == 0 || steps < -16 || steps > 16)
             throw new IllegalArgumentException("invalid rotary input");
         ByteArrayOutputStream rel = new ByteArrayOutputStream();
         rel.write(8); varint(rel, 65536L);
@@ -20,7 +20,7 @@ public final class Mh2pAaWheelWire {
         message(relative, 10, rel.toByteArray());
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         out.write(128); out.write(1); // Two-byte BE InputReport message type.
-        out.write(8); varint(out, timestampMicros);
+        out.write(8); varint(out, timestampNanos);
         message(out, 50, relative.toByteArray());
         return out.toByteArray();
     }

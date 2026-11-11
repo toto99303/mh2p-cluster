@@ -8,4 +8,5 @@ mapfile -t WHEEL_SOURCES < <(rg --files "$WHEEL_SRC" "$HERE/wheel-fixtures" -g '
 java -jar "${ECJ_JAR:?set ECJ_JAR}" -1.4 -source 1.4 -target 1.4 -nowarn \
     -d "$WHEEL_TEST" "${WHEEL_SOURCES[@]}"
 java -Xverify:all -cp "$WHEEL_TEST" WheelTest
+java -Xverify:all -cp "$WHEEL_TEST" WheelBootstrapTest
 python3 "$HERE/wheel_wire_test.py" "$WHEEL_TEST"

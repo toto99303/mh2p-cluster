@@ -53,6 +53,16 @@ public class WheelTest {
         int previous=c.calls; stock.view.fire(1); check(c.calls==previous,"retired service events ignored");
         replacement.view.fire(2); check(c.last==2,"replacement service events observed");
         binding.close(); previous=c.calls; replacement.view.fire(1); check(c.calls==previous,"closed observer inert without editing OEM listener set");
+        for (int i=0; i<100; i++) { binding.attach(replacement); binding.close(); }
+        check(replacement.view.listeners.size()==1, "repeated rebind reuses one observer instead of retaining retired proxies");
+        binding.attach(replacement);
+        Consumer other = new Consumer(); Mh2pWheelBinding duplicate = new Mh2pWheelBinding(other);
+        boolean refused = false;
+        try { duplicate.attach(replacement); } catch (IllegalStateException expected) { refused = true; }
+        replacement.view.fire(1);
+        check(refused && other.calls==0 && c.calls==previous+1,
+            "second active binding cannot steal the existing view observer");
+        binding.close();
         check(!binding.attach(new IMapClusterServiceWrapper(null))&&!binding.attach(new Object()), "expired or unsupported services refused");
     }
     static void checkSilent(boolean b) { if(!b) throw new AssertionError("unbounded completed history"); }

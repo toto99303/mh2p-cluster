@@ -2,7 +2,8 @@
 
 **Current stable baseline: [candidate5](STABLE_BASELINE.md).** The owner selected
 candidate1's readiness runtime with the candidate4 screen margins. The ZIP is
-unchanged; an installed candidate5 needs no update. Wheel zoom is a separate draft.
+unchanged; an installed candidate5 needs no update. [Wheel zoom](wheel-zoom/README.md)
+is a separate candidate6 test build, awaiting vehicle validation.
 The remaining installation/reference notes below describe withdrawn candidate4.
 
 **Candidate4 is withdrawn from recommended use.** The owner reports that the MMI

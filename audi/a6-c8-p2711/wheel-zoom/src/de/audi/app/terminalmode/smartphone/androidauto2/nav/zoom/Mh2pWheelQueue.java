@@ -52,6 +52,8 @@ public final class Mh2pWheelQueue {
             && now-event.capturedAt <= MAX_AGE;
     }
     public synchronized void cancel() { generation++; pending = 0; owned = false; }
+    public synchronized long generation() { return generation; }
+    public synchronized boolean hasPending() { return owned && pending != 0; }
     private boolean clock(long now) {
         if (now < 0 || (haveClock && now < lastNow)) {
             cancel(); lastNow = now; haveClock = true; return false;

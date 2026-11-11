@@ -5,12 +5,17 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
+import java.util.WeakHashMap;
 
 /** Additive P2711 RemoteZoomView observer. No navigation/AA command is sent.
- * Attach/close must run on the HMI dispatcher, matching OEM listener lifetime.
+ * Attach must run on the OEM CLUSTER dispatcher, matching its listener lifetime.
+ * Close only retires our memory delegate and may run from any thread.
  * OEM has no removeListener API: retire our weak delegate without editing its set.
  */
 public final class Mh2pWheelBinding {
+    // A view has no removeListener API. Reuse its one proxy across rebinds;
+    // neither the proxy nor its weak target holds the weak-key view alive.
+    private static final WeakHashMap observers = new WeakHashMap();
     public interface Consumer { void onSteps(int relativeSteps); }
     private final Consumer consumer;
     private WeakReference view;
@@ -36,20 +41,34 @@ public final class Mh2pWheelBinding {
         if (view != null && view.get() == current && handler != null && handler.active) return true;
         close();
         Class listener = Class.forName("de.audi.tghu.navi.app.map.zoom.IZoomView$IZoomViewListener");
-        Handler next = new Handler(this);
-        Object proxy = Proxy.newProxyInstance(listener.getClassLoader(), new Class[] {listener}, next);
-        try {
-            current.getClass().getMethod("addListener", new Class[] {listener}).invoke(current, new Object[] {proxy});
+        synchronized (observers) {
+            Handler next = (Handler) observers.get(current);
+            if (next != null) {
+                Object previous = next.target.get();
+                if (next.active && previous != null && previous != this)
+                    throw new IllegalStateException("wheel view already has an active observer");
+                next.target = new WeakReference(this);
+                next.active = true;
+            } else {
+                next = new Handler(this);
+                Object proxy = Proxy.newProxyInstance(listener.getClassLoader(), new Class[] {listener}, next);
+                try {
+                    current.getClass().getMethod("addListener", new Class[] {listener}).invoke(current, new Object[] {proxy});
+                    observers.put(current, next);
+                } catch (Exception failure) { next.active = false; throw failure; }
+            }
             view = new WeakReference(current); handler = next;
-        } catch (Exception failure) { next.active = false; throw failure; }
+        }
         return true;
     }
     public synchronized void close() {
-        if (handler != null) handler.active = false;
+        synchronized (observers) {
+            if (handler != null && handler.target.get() == this) handler.active = false;
+        }
         handler = null; view = null;
     }
     private static final class Handler implements InvocationHandler {
-        private final WeakReference target;
+        private volatile WeakReference target;
         volatile boolean active = true;
         Handler(Mh2pWheelBinding binding) { target = new WeakReference(binding); }
         public Object invoke(Object proxy, Method method, Object[] args) {
