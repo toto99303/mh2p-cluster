@@ -1,19 +1,29 @@
-# Audi A6 C8 P2711 candidate4: backup, installation and rollback
+# Audi A6 C8 P2711 — stable baseline and recovery reference
 
-Tested on an **Audi A6 C8**, firmware **MH2p_ER_AUG35_P2711**, with a 1920x722
-Virtual Cockpit. Android Auto must already work on the main MMI screen.
+**Current stable baseline: [candidate5](STABLE_BASELINE.md).** The owner selected
+candidate1's readiness runtime with the candidate4 screen margins. The ZIP is
+unchanged; an installed candidate5 needs no update. Wheel zoom is a separate draft.
+The remaining installation/reference notes below describe withdrawn candidate4.
 
-[Release and installable ZIP](https://github.com/toto99303/mh2p-cluster/releases/tag/a6-c8-p2711-candidate4)
-· [ZIP file](../../builds/ClusterIntegration_a6_c8_p2711_auto_route62_candidate4.zip)
-· [SHA-256 file](../../builds/ClusterIntegration_a6_c8_p2711_auto_route62_candidate4.zip.sha256)
+**Candidate4 is withdrawn from recommended use.** The owner reports that the MMI
+freezes after running for some time and then reboots. Short connect/disconnect
+checks did not establish long-term stability. No corrected installable build has
+been validated.
 
-**First installation:** follow steps 1–4 below. First copy the original files from
-the MMI to your PC using SCP; then put the **full released package** on an SD card.
+**Already installed?** Preserve your original SCP backup and the complete SD card,
+including `Mods/ClusterIntegration/Update/Backup/` and its manifest. Use
+[Recovery and rollback](#recovery-and-rollback) below to remove ClusterIntegration
+with the existing saved-card procedure. A button restart or `dmdt sb 4` does not
+remove the installed controller.
 
-**Already have ClusterIntegration installed?** Keep your existing pre-install
-backup and use [Updating an existing installation](#updating-an-existing-installation).
-A new SCP copy of an already modified unit is a current-state backup, not an
-original-files backup. If candidate4 is already working, this is the same build.
+[Withdrawn release notice](https://github.com/toto99303/mh2p-cluster/releases/tag/a6-c8-p2711-candidate4)
+· [Stability investigation and host reproduction](STABILITY.md)
+· [Freeze/restart troubleshooting and PC-side capture](TROUBLESHOOTING.md)
+
+The reported unit is an Audi A6 C8 with MH2p_ER_AUG35_P2711 and a 1920x722 cockpit.
+The backup/installation instructions below are retained as reference. **They are
+not a recommendation to install candidate4.** A new SCP copy of an already modified
+unit is a current-state backup, not an original-files backup.
 
 ## 1. Back up the original files to your PC via SCP
 
