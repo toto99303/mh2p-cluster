@@ -10,7 +10,7 @@ Bridge Android Auto navigation from Porsche PCM5 / ~~VW / Audi~~ MH2P to instrum
 >
 > **Download (Audi MH2p, experimental)** [ClusterIntegration_v0034_beta2_candidate_90d0b76_audi.zip](https://github.com/jonny190/mh2p-cluster/raw/main/builds/ClusterIntegration_v0034_beta2_candidate_90d0b76_audi.zip) and read the [Audi section](#audi-mh2p-e-tron-and-other-mlbevo-audis--experimental) first. The Porsche package aborts on an Audi with "Not a Porsche head unit", and copying only the scripts from `modkit/` over it is not enough: the Audi installer also needs `Update/aa_only/` and `Update/audi/`, which are part of the Audi zip.
 
-> **Audi A6 C8 ER P2711 — stable baseline: candidate5.** [Download, recorded vehicle feedback and unchanged package checksum](audi/a6-c8-p2711/STABLE_BASELINE.md). Selected by the owner; candidate1's readiness runtime and the requested margins are frozen. Wheel-zoom development proceeds separately.
+> **Audi A6 C8 ER P2711 — stable baseline: candidate5.** [Download, recorded vehicle feedback and unchanged package checksum](audi/a6-c8-p2711/STABLE_BASELINE.md). Selected by the owner; candidate1's readiness runtime and the requested margins are frozen. [Experimental wheel zoom](audi/a6-c8-p2711/wheel-zoom/README.md) is separate and awaits vehicle testing.
 >
 > **Candidate4 remains withdrawn:** the owner reports MMI freezes followed by reboots. Use the [recovery instructions](audi/a6-c8-p2711/README.md#recovery-and-rollback) for an installed copy. See the [stability investigation](audi/a6-c8-p2711/STABILITY.md); candidate5 does not establish a fix for those freezes.
 >
@@ -290,7 +290,7 @@ On the e-tron the cockpit went black after Android Auto disconnected and stayed 
 - when the video starts: `KOMBI_MAP: AA video rendering, hiding native cockpit map (viewer=... mapCluster=...)`, followed by one `KOMBI_MAP: service: ...` line per registered OSGi service whose name mentions Map, Kombi, Cluster, Combi, Zoom or navi (with `DEVICE_INSTANCE` / `DEVICE_NAME` where set), the inventory to read if a lookup failed;
 - when it stops: `KOMBI_MAP: AA video stopped, showing native cockpit map in 1200 ms`, then `native kombi map viewer woken`, `IMapClusterService.switchKombiMapToHiddenContext() invoked`, `...switchKombiMapToAShownContext() invoked`, `...notifyViewSizeChanged(true) invoked`. If the cockpit still stays black after those lines, the hand-back reaches the HMI but the map window is not rebuilt; the next lever is the display composition itself (see the A7 notes in PR #12).
 
-The steering-wheel zoom is the same service in the other direction (`changeZoomLevel(int)` fires the HMI's `RemoteZoomView`, which drives the hidden Audi map); routing it to the phone's map is not done yet.
+The steering-wheel zoom is the same service in the other direction (`changeZoomLevel(int)` fires the HMI's `RemoteZoomView`, which drives the hidden Audi map). The separate [A6 C8 P2711 candidate6 experiment](audi/a6-c8-p2711/wheel-zoom/README.md) routes relative input to AA's secondary input channel; it awaits vehicle testing and is not part of stable candidate5.
 
 ### Changing the cockpit loading splash
 

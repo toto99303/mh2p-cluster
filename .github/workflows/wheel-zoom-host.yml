@@ -1,0 +1,43 @@
+name: AA wheel host validation
+on:
+  pull_request:
+    paths:
+      - 'audi/a6-c8-p2711/wheel-zoom/**'
+      - 'modkit/*wheel*'
+      - 'modkit/java/AddWheelBootstrap.java'
+      - 'modkit/test/wheel*'
+      - 'modkit/test/wheel-fixtures/**'
+      - 'builds/*wheel*'
+      - '.github/workflows/wheel-zoom-host.yml'
+  push:
+    branches: [feat/a6-c8-aa-wheel-zoom]
+permissions:
+  contents: read
+jobs:
+  synthetic-host-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare host tools (no OEM inputs)
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y mksh ripgrep
+          mkdir -p "$RUNNER_TEMP/wheel-tools"
+          curl -fsSL https://repo.maven.apache.org/maven2/org/eclipse/jdt/ecj/3.20.0/ecj-3.20.0.jar -o "$RUNNER_TEMP/wheel-tools/ecj.jar"
+          curl -fsSL https://repo.maven.apache.org/maven2/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar -o "$RUNNER_TEMP/wheel-tools/asm.jar"
+          cd "$RUNNER_TEMP/wheel-tools"
+          echo '3cb2a284d424a5d6254432cbf7ab724f6f83f6dbd9636b645e3409a5d2dfb0cf  ecj.jar' | sha256sum -c -
+          echo '8cadd43ac5eb6d09de05faecca38b917a040bb9139c7edeb4cc81c740b713281  asm.jar' | sha256sum -c -
+          echo "ECJ_JAR=$RUNNER_TEMP/wheel-tools/ecj.jar" >> "$GITHUB_ENV"
+          echo "ASM_JAR=$RUNNER_TEMP/wheel-tools/asm.jar" >> "$GITHUB_ENV"
+      - name: Java queue, binding, ownership and guarded bootstrap
+        run: |
+          bash modkit/test/wheel_zoom.sh
+          python3 modkit/test/wheel_bootstrap_transform_test.py
+      - name: Native state sanitizers and Java/native loopback
+        run: |
+          bash modkit/test/wheel_native_state.sh
+          python3 modkit/test/wheel_companion_test.py
+      - name: Archived payload, native ABI and installer checks
+        run: python3 modkit/test/wheel_package_test.py

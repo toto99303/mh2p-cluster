@@ -1,0 +1,10 @@
+{
+    global:
+        _ZN13MessageRouter4initEP14ChannelManager;
+        _ZN13MessageRouter12setupMappingEhh;
+        _ZN13MessageRouter8shutdownEv;
+        _ZN13MessageRouter23handleChannelCloseNotifEhRK24ChannelCloseNotification;
+        _ZN13MessageRouter12closeChannelEh;
+        _ZN13MessageRouter12routeMessageEhRK10shared_ptrI8IoBufferE;
+    local: *;
+};
