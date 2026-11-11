@@ -22,7 +22,7 @@ jobs:
       - name: Prepare host tools (no OEM inputs)
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y mksh
+          sudo apt-get install -y mksh ripgrep
           mkdir -p "$RUNNER_TEMP/wheel-tools"
           curl -fsSL https://repo.maven.apache.org/maven2/org/eclipse/jdt/ecj/3.20.0/ecj-3.20.0.jar -o "$RUNNER_TEMP/wheel-tools/ecj.jar"
           curl -fsSL https://repo.maven.apache.org/maven2/org/ow2/asm/asm/9.7.1/asm-9.7.1.jar -o "$RUNNER_TEMP/wheel-tools/asm.jar"
