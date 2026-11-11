@@ -10,7 +10,7 @@ Bridge Android Auto navigation from Porsche PCM5 / ~~VW / Audi~~ MH2P to instrum
 >
 > **Download (Audi MH2p, experimental)** [ClusterIntegration_v0034_beta2_candidate_90d0b76_audi.zip](https://github.com/jonny190/mh2p-cluster/raw/main/builds/ClusterIntegration_v0034_beta2_candidate_90d0b76_audi.zip) and read the [Audi section](#audi-mh2p-e-tron-and-other-mlbevo-audis--experimental) first. The Porsche package aborts on an Audi with "Not a Porsche head unit", and copying only the scripts from `modkit/` over it is not enough: the Audi installer also needs `Update/aa_only/` and `Update/audi/`, which are part of the Audi zip.
 
-> **Audi A6 C8 ER P2711 — candidate5:** [candidate1's readiness gate with the owner's centered screen margins](audi/a6-c8-p2711/CANDIDATE5.md). Experimental; preserves candidate1's runtime and disconnect behavior. Vehicle validation is pending.
+> **Audi A6 C8 ER P2711 — stable baseline: candidate5.** [Download, recorded vehicle feedback and unchanged package checksum](audi/a6-c8-p2711/STABLE_BASELINE.md). Selected by the owner; candidate1's readiness runtime and the requested margins are frozen. Wheel-zoom development proceeds separately.
 >
 > **Candidate4 remains withdrawn:** the owner reports MMI freezes followed by reboots. Use the [recovery instructions](audi/a6-c8-p2711/README.md#recovery-and-rollback) for an installed copy. See the [stability investigation](audi/a6-c8-p2711/STABILITY.md); candidate5 does not establish a fix for those freezes.
 >
