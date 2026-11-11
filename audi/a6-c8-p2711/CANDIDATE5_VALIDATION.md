@@ -1,8 +1,10 @@
 # Candidate5 package verification
 
 Target: Audi A6 C8, MH2p_ER_AUG35_P2711, 1920x722 cockpit. The owner reports
-successful startup-readiness behavior with candidate1. **Candidate5 has not yet
-been tested on the vehicle; no freeze/reboot fix or long-term stability is claimed.**
+successful startup-readiness behavior with candidate1. The owner subsequently
+reported 20 minutes without a reboot and selected candidate5 as the stable
+baseline. See [recorded vehicle feedback and the stable designation](STABLE_BASELINE.md).
+No longer-duration result or confirmed freeze/reboot root cause has been supplied.
 
 [Package and installation instructions](CANDIDATE5.md).
 

@@ -1,8 +1,9 @@
-# Audi A6 C8 P2711 candidate4 — withdrawn: recovery and reference notes
+# Audi A6 C8 P2711 — stable baseline and recovery reference
 
-For the owner's requested return to candidate1 with centered screen margins,
-see [candidate5 package and instructions](CANDIDATE5.md). The notes below describe
-the withdrawn candidate4 package.
+**Current stable baseline: [candidate5](STABLE_BASELINE.md).** The owner selected
+candidate1's readiness runtime with the candidate4 screen margins. The ZIP is
+unchanged; an installed candidate5 needs no update. Wheel zoom is a separate draft.
+The remaining installation/reference notes below describe withdrawn candidate4.
 
 **Candidate4 is withdrawn from recommended use.** The owner reports that the MMI
 freezes after running for some time and then reboots. Short connect/disconnect
